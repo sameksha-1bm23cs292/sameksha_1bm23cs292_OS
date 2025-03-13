@@ -1,0 +1,70 @@
+#include<stdio.h>
+void sort(int process_id[],int arrivial_time[], int burst_time[],int n)
+{
+    int min=arrivial_time[0],temp=0;
+    for(int i=0;i<n;i++)
+    {
+        min=arrivial_time[i];
+        for(int j=i;j<n;j++)
+        {
+            if(arrivial_time[j]<min)
+            {
+                temp=arrivial_time[i];
+                arrivial_time[i]=arrivial_time[j];
+                arrivial_time[j]=temp;
+                temp=burst_time[j];
+                burst_time[j]=burst_time[i];
+                burst_time[i]=temp;
+                temp=process_id[i];
+                process_id[i]=process_id[j];
+                process_id[j]=temp;
+            }
+        }
+    }
+}
+void main()
+{
+    int n,c=0;
+    printf("Enter the number of PROCESSES : ");
+    scanf("%d",&n);
+    int process_id[n],arrivial_time[n],burst_time[n],tat[n],wait_time[n],ct[n],wt[n];
+    double avg_tat=0.0,ttat=0.0,avg_wt=0.0,twt=0.0;
+    for(int i=0;i<n;i++)
+        process_id[i]=i+1;
+    printf("Enter arrivial times:\n");
+    for(int i=0;i<n;i++)
+        scanf("%d",&arrivial_time[i]);
+    printf("Enter burst times:\n");
+    for(int i=0;i<n;i++)
+        scanf("%d",&burst_time[i]);
+    sort(process_id,arrivial_time,burst_time,n);
+
+    for(int i=0;i<n;i++)
+    {
+        if(c>=arrivial_time[i])
+            c+=burst_time[i];
+        else
+            c+=arrivial_time[i]-ct[i-1]+burst_time[i];
+        ct[i]=c;
+    }
+
+    for(int i=0;i<n;i++)
+        tat[i]=ct[i]-arrivial_time[i];
+
+    for(int i=0;i<n;i++)
+        wt[i]=tat[i]-burst_time[i];
+
+    printf("FIRST COME FIRST SERVE SCHEDULING :\n");
+    printf("PID\tAT\tBT\tCT\tTAT\tWT\n");
+    for(int i=0;i<n;i++)
+        printf("%d\t%d\t%d\t%d\t%d\t%d\n",process_id[i],arrivial_time[i],burst_time[i],ct[i],tat[i],wt[i]);
+    for(int i=0;i<n;i++)
+    {
+        ttat+=tat[i];
+        twt+=wt[i];
+    }
+    avg_tat=ttat/(double)n;
+    avg_wt=twt/(double)n;
+    printf("\nAverage turanround time:%lfms\n",avg_tat);
+    printf("\nAverage waiting time:%lfms\n",avg_wt);
+}
