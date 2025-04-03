@@ -1,0 +1,74 @@
+#include <stdio.h>
+#include <stdlib.h>
+#define MAX_PROCESSES 10
+typedef struct {
+int pid;
+int arrival;
+int burst;
+int type;
+} Process;
+
+void sortByArrival(Process queue[], int n) {
+for (int i = 0; i < n - 1; i++) {
+for (int j = 0; j < n - i - 1; j++) {
+if (queue[j].arrival > queue[j + 1].arrival) {
+Process temp = queue[j];
+queue[j] = queue[j + 1];
+queue[j + 1] = temp;
+}
+}
+}
+}
+
+void executeProcesses(Process queue[], int n) {
+int currentTime = 0;
+printf("\nExecution Order:\n");
+printf("PID\tType\tArrival\tBurst\tStart\tCompletion\n");
+
+for (int i = 0; i < n; i++) { 
+int startTime = (currentTime > queue[i].arrival) ? currentTime : queue[i].arrival;
+int completionTime = startTime + queue[i].burst;
+printf("%d\t%s\t%d\t%d\t%d\t%d\n",
+queue[i].pid,
+(queue[i].type == 0) ? "System" : "User",
+queue[i].arrival,
+queue[i].burst,
+startTime,
+completionTime);
+currentTime = completionTime;
+}
+}
+
+int main() {
+int n;
+Process systemQueue[MAX_PROCESSES], userQueue[MAX_PROCESSES];
+int sysCount = 0, userCount = 0;
+
+printf("Enter the number of processes: ");
+scanf("%d", &n);
+
+for (int i = 0; i < n; i++) {
+Process p;
+printf("\nEnter details for Process %d\n", i + 1);
+p.pid = i + 1;
+printf("Arrival Time: ");
+scanf("%d", &p.arrival);
+printf("Burst Time: ");
+scanf("%d", &p.burst);
+printf("Process Type (0=System, 1=User): ");
+scanf("%d", &p.type);
+
+if (p.type == 0)
+systemQueue[sysCount++] = p;
+else
+userQueue[userCount++] = p;
+}
+
+sortByArrival(systemQueue, sysCount);
+sortByArrival(userQueue, userCount);
+
+executeProcesses(systemQueue, sysCount);
+executeProcesses(userQueue, userCount);
+
+return 0;
+}
