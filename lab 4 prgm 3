@@ -1,0 +1,88 @@
+#include <stdio.h>
+#include <stdlib.h>
+#define MAX_TASKS 10
+
+typedef struct {
+    int task_id;
+    int period;
+    int execution_time;
+    int remaining_time;
+    int completion_time;
+} Task;
+
+void sort_tasks(Task tasks[], int n) {
+    for (int i = 0; i < n - 1; i++) {
+        for (int j = i + 1; j < n; j++) {
+            if (tasks[i].period > tasks[j].period) {
+                Task temp = tasks[i];
+                tasks[i] = tasks[j];
+                tasks[j] = temp;
+            }
+        }
+    }
+}
+
+void rate_monotonic_scheduling(Task tasks[], int n, int total_time) {
+    int time = 0;
+
+    for (int i = 0; i < n; i++) {
+        tasks[i].remaining_time = tasks[i].execution_time;
+        tasks[i].completion_time = -1;
+    }
+
+    while (time < total_time) {
+        int task_scheduled = 0;
+
+        for (int i = 0; i < n; i++) {
+            if (time % tasks[i].period == 0) {
+                tasks[i].remaining_time = tasks[i].execution_time;
+            }
+
+            if (tasks[i].remaining_time > 0) {
+                tasks[i].remaining_time--;
+                task_scheduled = 1;
+                printf("Time %d: Task %d is executing\n", time, tasks[i].task_id);
+                if (tasks[i].remaining_time == 0 && tasks[i].completion_time == -1) {
+                    tasks[i].completion_time = time + 1;
+                }
+                break;
+        }
+
+        if (!task_scheduled) {
+            printf("Time %d: No task is executing (idle time)\n", time);
+        }
+        time++;
+    }
+
+    printf("\nTask Completion Times:\n");
+    for (int i = 0; i < n; i++) {
+        if (tasks[i].completion_time != -1) {
+            printf("Task %d completed at time %d\n", tasks[i].task_id, tasks[i].completion_time);
+        } else {
+            printf("Task %d did not complete within the simulation time\n", tasks[i].task_id);
+        }
+    }
+}
+} 
+
+int main() {
+    Task tasks[MAX_TASKS];
+    int n, total_time;
+
+    printf("Enter the number of tasks: ");
+    scanf("%d", &n);
+
+    for (int i = 0; i < n; i++) {
+        printf("Enter the period and execution time for Task %d: ", i + 1);
+        tasks[i].task_id = i + 1;
+        scanf("%d %d", &tasks[i].period, &tasks[i].execution_time);
+    }
+
+    printf("Enter the total time for the simulation: ");
+    scanf("%d", &total_time);
+
+    sort_tasks(tasks, n);
+    rate_monotonic_scheduling(tasks, n, total_time);
+
+    return 0;}
+
