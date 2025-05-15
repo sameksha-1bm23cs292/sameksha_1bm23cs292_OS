@@ -1,0 +1,113 @@
+#include <stdio.h>
+#include <stdbool.h>
+
+#define MAX_PROCESSES 10
+#define MAX_RESOURCES 10
+
+bool detectCycle(int processes, int graph[processes][processes], int visited[], int current) {
+    if (visited[current] == 1) {
+        return true; // Cycle detected
+    }
+    if (visited[current] == 2) {
+        return false; // No cycle, this node is fully processed
+    }
+
+    visited[current] = 1;
+    
+    for (int i = 0; i < processes; i++) {
+        if (graph[current][i] == 1 && detectCycle(processes, graph, visited, i)) {
+            return true; // Cycle found in recursion
+        }
+    }
+
+    visited[current] = 2;
+    return false;
+}
+
+void detectDeadlock(int processes, int resources, int allocation[][resources], int request[][resources]) {
+    int waitForGraph[processes][processes];
+    
+    for (int i = 0; i < processes; i++) {
+        for (int j = 0; j < processes; j++) {
+            waitForGraph[i][j] = 0;
+        }
+    }
+
+    for (int i = 0; i < processes; i++) {
+        for (int j = 0; j < processes; j++) {
+            // If process i is requesting a resource that is allocated to process j
+            // then process i is waiting for process j
+            if (i != j) {
+                bool hasRequest = false;
+                for (int k = 0; k < resources; k++) {
+                    if (request[i][k] > 0 && allocation[j][k] > 0) {
+                        hasRequest = true;
+                        break;
+                    }
+                }
+
+                if (hasRequest) {
+                    waitForGraph[i][j] = 1; // i is waiting for j
+                }
+            }
+        }
+    }
+
+    printf("\nWait-for Graph (1 means process is waiting for another):\n");
+    for (int i = 0; i < processes; i++) {
+        for (int j = 0; j < processes; j++) {
+            printf("%d ", waitForGraph[i][j]);
+        }
+        printf("\n");
+    }
+
+    int visited[processes];
+    for (int i = 0; i < processes; i++) {
+        visited[i] = 0; // 0: not visited, 1: visiting, 2: fully processed
+    }
+
+    bool deadlockDetected = false;
+    for (int i = 0; i < processes; i++) {
+        if (visited[i] == 0 && detectCycle(processes, waitForGraph, visited, i)) {
+            printf("\nDeadlock detected!\n");
+            deadlockDetected = true;
+            break;
+        }
+    }
+
+    if (!deadlockDetected) {
+        printf("\nNo deadlock detected.\n");
+    }
+}
+
+int main() {
+    int processes, resources;
+
+    printf("Enter the number of processes: ");
+    scanf("%d", &processes);
+    printf("Enter the number of resource types: ");
+    scanf("%d", &resources);
+
+    int allocation[MAX_PROCESSES][MAX_RESOURCES];
+    int request[MAX_PROCESSES][MAX_RESOURCES];
+
+    printf("\nEnter the allocation matrix (allocated resources for each process):\n");
+    for (int i = 0; i < processes; i++) {
+        for (int j = 0; j < resources; j++) {
+            printf("Allocation[%d][%d]: ", i + 1, j + 1);
+            scanf("%d", &allocation[i][j]);
+        }
+    }
+
+    printf("\nEnter the request matrix (requested resources by each process):\n");
+    for (int i = 0; i < processes; i++) {
+        for (int j = 0; j < resources; j++) {
+            printf("Request[%d][%d]: ", i + 1, j + 1);
+            scanf("%d", &request[i][j]);
+        }
+    }
+
+    detectDeadlock(processes, resources, allocation, request);
+
+    return 0;
+}
